@@ -338,12 +338,24 @@ system.time({
 })
 ```
 
+John-CDF / Ousterplot
+=====================
+
+```{r, fig.width=6, fig.height=4}
+(g = ggplot(latencypercentiles) +
+        geom_step(aes(x=time, y=(1 - percentile))) +
+        scale_x_log10(breaks=10**(0:6),
+                      minor_breaks=log10(5 * 10**(0:6))) +
+        scale_y_log10(breaks=10**-(0:7),
+                      minor_breaks=log10(5 * 10**-(0:7))) +
+        annotation_logticks())
+```
+
 TODO
 ====
 
 Types of plots:
 
-* John-CDF / Ousterplot
 * disk/flash/dram "graph" from the case for RAMCloud?
 
 Concepts:
