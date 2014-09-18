@@ -156,12 +156,54 @@ Better zero-base those axes!
 
 (BTW, don't use `qplot`; always spell it out with `ggplot`.)
 
+A Grouped Bar Graph
+===================
+
+Steal allocator dataset from Steve Rumble:
+```{r, results='asis'}
+alloc = read.table('allocators.data', header=TRUE)
+fmt(alloc)
+```
+
+Pretty easy to plot first workload:
+```{r, fig.width=8, fig.height=3}
+# geom_bar defaults to using frequency for y value; stat='identity' tells it to
+# use the y value specified.
+(g = ggplot(alloc) +
+    geom_bar(aes(x=Allocator, y=W1),
+             stat='identity',
+             width=.2))
+```
+
+To plot all the workloads, we first need to blow up the data frame from the
+current wide format to a long format:
+```{r, results='asis'}
+library(reshape2)
+alloclong = melt(alloc,
+    id.vars = c('Allocator'),
+    variable.name='workload',
+    value.name='GB')
+fmt(alloclong[1:10,])
+```
+
+Now we can plot this long-format data:
+```{r, fig.width=8, fig.height=3}
+(g = ggplot(alloclong) +
+    geom_bar(aes(x=Allocator, y=GB, fill=workload),
+             stat='identity',
+             position='dodge')) # without dodge, bars would stack
+```
+
+Too much rainbow? Built-in [ColorBrewer](http://colorbrewer2.org/).
+```{r, fig.width=8, fig.height=3}
+(g = g + scale_fill_brewer(palette='Set1'))
+```
+
 TODO
 ====
 
 Types of plots:
 
-* Histogram (see Rumble thesis pg18 for complex example)
 * CDF
 * John-CDF / Ousterplot
 * disk/flash/dram "graph" from the case for RAMCloud?
