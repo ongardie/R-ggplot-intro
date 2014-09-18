@@ -123,7 +123,7 @@ fmt(ab12)
 ab12$y
 ```
 
-```{r}
+```{r, results='asis'}
 sample.df = function(df, n=5) {
     df[sample(nrow(df), n),]
 }
@@ -285,13 +285,64 @@ ggplot(splitrates) +
                      })
 ```
 
+CDF
+===
+
+Got some raw data about RAMCloud latencies from Collin.
+
+```{r}
+f = bzfile('rpcServiceTime.txt.bz2', 'r+')
+readLines(f, n=5)
+f = bzfile('rpcServiceTime.txt.bz2', 'r+')
+system.time({
+    rpcServiceTime = scan(f, sep=',') # slow!
+})
+head(rpcServiceTime)
+length(rpcServiceTime)
+latency = data.frame(rpcServiceTime=rpcServiceTime)
+```
+
+```{r}
+# slow!
+system.time({
+    g = ggplot(latency) +
+            stat_ecdf(aes(x=rpcServiceTime)) +
+            scale_x_log10()
+    print(g)
+})
+```
+
+Let's pre-process the data first:
+
+```{r}
+system.time({
+    times = 10**seq(log10(min(rpcServiceTime)),
+                    log10(max(rpcServiceTime)),
+                    length.out=1000)
+    rpcServiceEcdf = ecdf(rpcServiceTime)
+    percentiles = rpcServiceEcdf(times)
+    latencypercentiles = data.frame(time=times,
+                                    percentile=percentiles)
+})
+
+```{r, results='asis'}
+fmt(sample.df(latencypercentiles))
+```
+
+```{r}
+system.time({
+    g = ggplot(latencypercentiles) +
+            geom_step(aes(x=time, y=percentile)) +
+            scale_x_log10()
+    print(g)
+})
+```
 
 TODO
 ====
 
 Types of plots:
 
-* CDF
 * John-CDF / Ousterplot
 * disk/flash/dram "graph" from the case for RAMCloud?
 
