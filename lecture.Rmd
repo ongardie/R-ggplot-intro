@@ -1,0 +1,6 @@
+---
+title: "Introduction to R/ggplot"
+output: slidy_presentation
+---
+
+hello world
