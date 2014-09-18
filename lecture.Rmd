@@ -21,6 +21,11 @@ September 2014
 
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under the <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 
+```{r, include=FALSE}
+# turn on caching for R output
+knitr::opts_chunk$set(cache=TRUE)
+```
+
 Getting Started
 ===============
 
@@ -111,12 +116,17 @@ Data Frames
 * Like a database table
 
     ```{r, results='asis'}
-df = data.frame(x=c('a', 'b'), y=c(1, 2))
+ab12 = data.frame(x=c('a', 'b'), y=c(1, 2))
 fmt = knitr::kable # renders data frame nicely
-fmt(df)
-df$y
+fmt(ab12)
+ab12$y
+```
 
-somecars = mtcars[1:5,]
+```{r}
+sample.df = function(df, n=5) {
+    df[sample(nrow(df), n),]
+}
+somecars = sample.df(mtcars)
 fmt(somecars)
 ```
 
@@ -183,7 +193,7 @@ alloclong = melt(alloc,
     id.vars = c('Allocator'),
     variable.name='workload',
     value.name='GB')
-fmt(alloclong[1:10,])
+fmt(sample.df(alloclong))
 ```
 
 Now we can plot this long-format data:
@@ -198,6 +208,82 @@ Too much rainbow? Built-in [ColorBrewer](http://colorbrewer2.org/).
 ```{r, fig.width=8, fig.height=3}
 (g = g + scale_fill_brewer(palette='Set1'))
 ```
+
+Plotting Mathematical Functions
+===============================
+
+Use `stat_function` to super-impose a single function.
+
+Here's a more complex example that plots a bunch of functions.
+In a Raft cluster, let:
+
+* $s$ be number of available servers,
+* $n$ be the full cluster size (so $f=n-s$ servers have failed), and
+* $l$ be fixed one-way network latency divided by the election timeout range.
+
+The probability of a split vote is determined by:
+
+$\sum\limits_{k=s - \lfloor n/2 \rfloor}^s
+     \dbinom{s}{k}
+     l^k
+     (1-l)^{s-k}$
+
+Goal: plot split vote rate for various clusters
+
+Rewrite function in R:
+
+```{r}
+summation = function(lower, upper, fun) {
+  s = 0
+  for (i in lower:upper) {
+    s = s + fun(i)
+  }
+  s
+}
+splitrate = function(s, n, l) {
+  summation(s - floor(n / 2), s, function(k) {
+    choose(s, k) * l**k * (1 - l)**(s - k)
+  })
+}
+```
+
+Create data frame for interesting range of inputs:
+
+```{r, results='asis'}
+splitrates = data.frame()
+for (n in c(3, 5, 7, 9)) {
+  for (s in (floor(n / 2) + 1):n) {
+    for (l in seq(0, 1, length.out=200)) {
+      rbind(splitrates, data.frame(
+        s=s,
+        n=n,
+        f=n-s,
+        l=l,
+        p=splitrate(s, n, l)
+        ))->splitrates
+    }
+  }
+}
+splitrates$s <- factor(splitrates$s)
+splitrates$n <- factor(splitrates$n)
+splitrates$f <- factor(splitrates$f)
+fmt(sample.df(splitrates))
+```
+
+Plot as usual:
+
+```{r, fig.width=6, fig.height=6}
+ggplot(splitrates) +
+    geom_line(aes(x=l, y=p, color=f)) +
+    scale_color_hue('failures', limits=0:4) +
+    xlab('network latency / election timeout range') +
+    ylab('probability of split vote') +
+    facet_grid(n~.,
+               labeller=function(var, val) {
+                       sprintf('%s-server cluster', val)
+                     })
+```
+
 
 TODO
 ====
@@ -221,7 +307,6 @@ Features:
 * Error Bars (ddply)
 * Facets
 * log scale
-* plot a function
 
 Limitations:
 
