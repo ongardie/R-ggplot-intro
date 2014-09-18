@@ -68,6 +68,7 @@ TRUE
 T
 FALSE
 F
+NA
 'hello'
 sprintf('I have %d apples and %0.02f bananas', 2, pi)
 ```
