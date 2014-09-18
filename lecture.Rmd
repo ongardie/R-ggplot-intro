@@ -1,6 +1,123 @@
 ---
 title: "Introduction to R/ggplot"
-output: slidy_presentation
+output:
+  slidy_presentation:
+    font_adjustment: -1
 ---
 
-hello world
+Getting Started
+===============
+
+* Run `R` for interactive REPL
+
+* Getting help
+
+    ```{r, eval=FALSE}
+?length
+?'+'
+??zip
+```
+
+* Installing libraries
+
+    ```{r, eval=FALSE}
+install.packages('ggplot2')
+```
+
+* Run scripts using `Rscript` from command line
+
+    ```sh
+Rscript plots.R
+```
+
+
+R Data Types
+============
+* primitives
+* vectors
+* matrices (won't cover)
+* lists
+* data frames
+
+Primitives
+==========
+```{r}
+3/2
+TRUE
+T
+FALSE
+F
+'hello'
+sprintf('I have %d apples and %0.02f bananas', 2, pi)
+```
+
+Vectors
+=======
+```{r}
+(vector = c(5, 3, 9)) # extra parens to print value
+length(vector)
+```
+
+Flat, uniform:
+```{r}
+c(5, 3, 9, FALSE, c(7, 2))
+10:20
+rep(7, 5)
+seq(10, 12, .5)
+```
+
+Nearly all operations vectorized:
+```{r}
+vector * 3
+vector + 6
+vector == 3
+```
+
+Lists
+=====
+
+* Sometimes a (Python) list, sometimes a map
+* Like a PHP array
+
+```{r}
+values = list(1, 'apple', 4, 'me')
+values[[2]]
+mapping = list(x=3, y=TRUE, values=values)
+mapping[['x']]
+mapping$y
+mapping$values[[4]]
+ls(mapping)
+```
+
+Data Frames
+===========
+
+* Like a database table
+
+    ```{r, results='asis'}
+df = data.frame(x=c('a', 'b'), y=c(1, 2))
+fmt = knitr::kable # renders data frame nicely
+fmt(df)
+df$y
+
+somecars = mtcars[1:5,]
+fmt(somecars)
+```
+
+*  Projection - vector of column names after the comma
+
+    ```{r, results='asis'}
+fmt(somecars[, c('mpg', 'hp', 'gear')]) # projection
+```
+
+* Selection - vector of booleans before the comma
+
+    ```{r, results='asis'}
+fmt(somecars[somecars$mpg > 21, ])
+```
+
+* Combined
+
+    ```{r, results='asis'}
+fmt(somecars[somecars$mpg > 21, c('hp', 'gear')])
+```
