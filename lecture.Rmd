@@ -3,6 +3,8 @@ pagetitle: 'Introduction to R/ggplot'
 output:
   slidy_presentation:
     font_adjustment: -1
+    fig_width: 5
+    fig_height: 3
 ---
 
 Introduction to plotting with R and ggplot2
@@ -135,3 +137,55 @@ fmt(somecars[somecars$mpg > 21, ])
     ```{r, results='asis'}
 fmt(somecars[somecars$mpg > 21, c('hp', 'gear')])
 ```
+
+Our First Scatter Plot
+======================
+
+```{r}
+library('ggplot2')
+(g = ggplot(mtcars) +
+     geom_point(aes(x=hp, y=mpg)))
+```
+
+Better zero-base those axes!
+```{r}
+# This makes sure (0,0) is shown in the graph. Alternatively, use
+# coord_cartesian() to control the axes' upper and lower bounds.
+(g = g + expand_limits(x = 0, y = 0))
+```
+
+(BTW, don't use `qplot`; always spell it out with `ggplot`.)
+
+TODO
+====
+
+Types of plots:
+
+* Histogram (see Rumble thesis pg18 for complex example)
+* CDF
+* John-CDF / Ousterplot
+* disk/flash/dram "graph" from the case for RAMCloud?
+
+Concepts:
+
+* aes
+* stat
+* geom
+* theme
+
+Features:
+
+* Legends
+* Error Bars (ddply)
+* Facets
+* log scale
+* plot a function
+
+Limitations:
+
+* Two y axes
+
+Loading data:
+
+* read.csv
+* sqlite
