@@ -4,6 +4,8 @@ output:
   slidy_presentation:
     fig_width: 5
     fig_height: 3
+    font_adjustment: -1
+    css: style.css
 ---
 
 Introduction to plotting with R and ggplot2
