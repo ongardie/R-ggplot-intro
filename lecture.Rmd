@@ -476,27 +476,49 @@ ggplot(splitrates) +
                      })
 ```
 
+The Grammar of Graphics
+=======================
 
-TODO
-====
+**plot:** *coord* *scale+* *facet?* *layer+*
 
-Concepts:
+**layer:** *data* *mapping* *stat* *geom* *position?*
 
-* aes
-* stat
-* geom
-* theme
-* factor
+\
 
-Features:
+**coord:** coordinate system, typically a cartesian grid
 
-* Legends
+**scale:** discrete and continuous axes, colors, shapes, sizes
 
-Limitations:
+**facet:** draws related graphs next to each other with different subsets of data
 
-* Two y axes
+**data and mapping:** define input data (mapping is the `aes()` thing)
+
+**stat:** transforms input data (CDF, summary, binning)
+
+**geom:** draws something (lines, points, bars)
+
+**position:** adjust placement for values with same x coordinate/category (stack, dodge, jitter)
+
+Limitations
+===========
+
+R:
+
+* Slow
+* Quirky
+* Awful error messages, no line numbers
+
+\
+
+ggplot2:
+
+* Data size (<1M rows)
+* Single y axis
 * Facetting with different axes
 
-Loading data:
+Resources
+=========
 
-* sqlite
+* http://docs.ggplot2.org/current/
+* Google and Stack Overflow
+* ggplot book (meh)
