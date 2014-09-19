@@ -351,12 +351,68 @@ John-CDF / Ousterplot
         annotation_logticks())
 ```
 
+Error Bars
+==========
+
+```{r, results='asis'}
+logcabin = read.csv('logcabin.csv')
+logcabin$iops = logcabin$writes / (logcabin$timems / 1000)
+fmt(sample.df(logcabin))
+```
+
+```{r, fig.width=7, fig.height=4}
+(g = ggplot(logcabin[logcabin$objsize == 2**10, ],
+            aes(x=servers,
+                y=iops,
+                color=factor(threads))) +
+     geom_line() +
+     geom_point(size=2))
+```
+
+```{r, fig.width=7, fig.height=4}
+(g = ggplot(logcabin[logcabin$objsize == 2**10, ],
+            aes(x=servers,
+                y=iops,
+                color=factor(threads))) +
+     stat_summary(fun.y=mean,
+                  geom='line') +
+     stat_summary(fun.ymin=min, fun.ymax=max,
+                  aes(ymin=..ymin..,
+                      ymax=..ymax..,
+                      group=factor(threads)),
+                  geom='errorbar',
+                  color='#505050',
+                  width=0.1) +
+     stat_summary(fun.y=mean,
+                  geom='point',
+                  size=2))
+```
+
+Alternatively, pre-summarize the data.
+
+```{r, fig.width=7, fig.height=4}
+library('plyr')
+logcabinsum = ddply(logcabin,
+        ~ servers + objsize + threads,
+        summarize,
+        mean_iops=mean(iops),
+        min_iops=min(iops),
+        max_iops=max(iops))
+
+(g = ggplot(logcabinsum[logcabinsum$objsize == 2**10, ],
+            aes(x=servers,
+                y=mean_iops,
+                color=factor(threads))) +
+     geom_line() +
+     geom_errorbar(aes(ymin = min_iops, ymax = max_iops),
+                   color='#505050',
+                   width=0.1) +
+     geom_point(size=2))
+```
+
+
 TODO
 ====
-
-Types of plots:
-
-* disk/flash/dram "graph" from the case for RAMCloud?
 
 Concepts:
 
@@ -364,19 +420,17 @@ Concepts:
 * stat
 * geom
 * theme
+* factor
 
 Features:
 
 * Legends
-* Error Bars (ddply)
-* Facets
-* log scale
 
 Limitations:
 
 * Two y axes
+* Facetting with different axes
 
 Loading data:
 
-* read.csv
 * sqlite
