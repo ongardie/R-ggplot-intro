@@ -2,7 +2,6 @@
 pagetitle: 'Introduction to R/ggplot'
 output:
   slidy_presentation:
-    font_adjustment: -1
     fig_width: 5
     fig_height: 3
 ---
@@ -10,16 +9,25 @@ output:
 Introduction to plotting with R and ggplot2
 ===========================================
 
-Diego Ongaro
-
-September 2014
-
+\
+\
 \
 \
 \
 \
 
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under the <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+Latest version: https://ongardie.github.io/R-ggplot-intro/
+
+Source code: https://github.com/ongardie/R-ggplot-intro/
+
+Created with [R Markdown](http://rmarkdown.rstudio.com/).
+
+\
+\
+
+Copyright 2014 Diego Ongaro
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under the <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 
 ```{r, include=FALSE}
 # turn on caching for R output
@@ -62,27 +70,45 @@ R Data Types
 
 Primitives
 ==========
+Floating point numbers
 ```{r}
 3/2
+```
+
+Booleans
+```{r}
 TRUE
 T
 FALSE
 F
+```
+
+Missing data:
+```{r}
 NA
+is.na(NA)
+is.na(FALSE)
+```
+
+Strings:
+```{r}
 'hello'
+"world"
 sprintf('I have %d apples and %0.02f bananas', 2, pi)
 ```
 
 Vectors
 =======
+
+Flat, uniform array of primitives
 ```{r}
 (vector = c(5, 3, 9)) # extra parens to print value
 length(vector)
+c(5, 3, 9, FALSE, c(7, 2))
 ```
 
-Flat, uniform:
+Sequences:
 ```{r}
-c(5, 3, 9, FALSE, c(7, 2))
 10:20
 rep(7, 5)
 seq(10, 12, .5)
@@ -93,6 +119,7 @@ Nearly all operations vectorized:
 vector * 3
 vector + 6
 vector == 3
+log10(vector)
 ```
 
 Lists
@@ -183,7 +210,7 @@ Pretty easy to plot first workload:
 (g = ggplot(alloc) +
     geom_bar(aes(x=Allocator, y=W1),
              stat='identity',
-             width=.2))
+             width=.5))
 ```
 
 To plot all the workloads, we first need to blow up the data frame from the
@@ -200,14 +227,22 @@ fmt(sample.df(alloclong))
 Now we can plot this long-format data:
 ```{r, fig.width=8, fig.height=3}
 (g = ggplot(alloclong) +
-    geom_bar(aes(x=Allocator, y=GB, fill=workload),
-             stat='identity',
-             position='dodge')) # without dodge, bars would stack
+        geom_bar(aes(x=Allocator, y=GB, fill=workload),
+                 stat='identity'))
 ```
 
-Too much rainbow? Built-in [ColorBrewer](http://colorbrewer2.org/).
+Oops, that was stacked. Interesting, but not what we wanted.
+Need to change position from default `stack` to `dodge`.
+
+Also, too much rainbow? Built-in [ColorBrewer](http://colorbrewer2.org/).
+
 ```{r, fig.width=8, fig.height=3}
-(g = g + scale_fill_brewer(palette='Set1'))
+(g = ggplot(alloclong) +
+        geom_bar(aes(x=Allocator, y=GB, fill=workload),
+                 stat='identity',
+                 position='dodge') +
+        scale_fill_brewer(palette='Set1') +
+        geom_abline(intercept=10, slope=0))
 ```
 
 Plotting Mathematical Functions
