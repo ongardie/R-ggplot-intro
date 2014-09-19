@@ -245,81 +245,6 @@ Also, too much rainbow? Built-in [ColorBrewer](http://colorbrewer2.org/).
         geom_abline(intercept=10, slope=0))
 ```
 
-Plotting Mathematical Functions
-===============================
-
-Use `stat_function` to super-impose a single function.
-
-Here's a more complex example that plots a bunch of functions.
-In a Raft cluster, let:
-
-* $s$ be number of available servers,
-* $n$ be the full cluster size (so $f=n-s$ servers have failed), and
-* $l$ be fixed one-way network latency divided by the election timeout range.
-
-The probability of a split vote is determined by:
-
-$\sum\limits_{k=s - \lfloor n/2 \rfloor}^s
-     \dbinom{s}{k}
-     l^k
-     (1-l)^{s-k}$
-
-Goal: plot split vote rate for various clusters
-
-Rewrite function in R:
-
-```{r}
-summation = function(lower, upper, fun) {
-  s = 0
-  for (i in lower:upper) {
-    s = s + fun(i)
-  }
-  s
-}
-splitrate = function(s, n, l) {
-  summation(s - floor(n / 2), s, function(k) {
-    choose(s, k) * l**k * (1 - l)**(s - k)
-  })
-}
-```
-
-Create data frame for interesting range of inputs:
-
-```{r, results='asis'}
-splitrates = data.frame()
-for (n in c(3, 5, 7, 9)) {
-  for (s in (floor(n / 2) + 1):n) {
-    for (l in seq(0, 1, length.out=200)) {
-      rbind(splitrates, data.frame(
-        s=s,
-        n=n,
-        f=n-s,
-        l=l,
-        p=splitrate(s, n, l)
-        ))->splitrates
-    }
-  }
-}
-splitrates$s <- factor(splitrates$s)
-splitrates$n <- factor(splitrates$n)
-splitrates$f <- factor(splitrates$f)
-fmt(sample.df(splitrates))
-```
-
-Plot as usual:
-
-```{r, fig.width=6, fig.height=6}
-ggplot(splitrates) +
-    geom_line(aes(x=l, y=p, color=f)) +
-    scale_color_hue('failures', limits=0:4) +
-    xlab('network latency / election timeout range') +
-    ylab('probability of split vote') +
-    facet_grid(n~.,
-               labeller=function(var, val) {
-                       sprintf('%s-server cluster', val)
-                     })
-```
-
 CDF
 ===
 
@@ -443,6 +368,81 @@ logcabinsum = ddply(logcabin,
                    color='#505050',
                    width=0.1) +
      geom_point(size=2))
+```
+
+Plotting Mathematical Functions
+===============================
+
+Use `stat_function` to super-impose a single function.
+
+Here's a more complex example that plots a bunch of functions.
+In a Raft cluster, let:
+
+* $s$ be number of available servers,
+* $n$ be the full cluster size (so $f=n-s$ servers have failed), and
+* $l$ be fixed one-way network latency divided by the election timeout range.
+
+The probability of a split vote is determined by:
+
+$\sum\limits_{k=s - \lfloor n/2 \rfloor}^s
+     \dbinom{s}{k}
+     l^k
+     (1-l)^{s-k}$
+
+Goal: plot split vote rate for various clusters
+
+Rewrite function in R:
+
+```{r}
+summation = function(lower, upper, fun) {
+  s = 0
+  for (i in lower:upper) {
+    s = s + fun(i)
+  }
+  s
+}
+splitrate = function(s, n, l) {
+  summation(s - floor(n / 2), s, function(k) {
+    choose(s, k) * l**k * (1 - l)**(s - k)
+  })
+}
+```
+
+Create data frame for interesting range of inputs:
+
+```{r, results='asis'}
+splitrates = data.frame()
+for (n in c(3, 5, 7, 9)) {
+  for (s in (floor(n / 2) + 1):n) {
+    for (l in seq(0, 1, length.out=200)) {
+      rbind(splitrates, data.frame(
+        s=s,
+        n=n,
+        f=n-s,
+        l=l,
+        p=splitrate(s, n, l)
+        ))->splitrates
+    }
+  }
+}
+splitrates$s <- factor(splitrates$s)
+splitrates$n <- factor(splitrates$n)
+splitrates$f <- factor(splitrates$f)
+fmt(sample.df(splitrates))
+```
+
+Plot as usual:
+
+```{r, fig.width=6, fig.height=6}
+ggplot(splitrates) +
+    geom_line(aes(x=l, y=p, color=f)) +
+    scale_color_hue('failures', limits=0:4) +
+    xlab('network latency / election timeout range') +
+    ylab('probability of split vote') +
+    facet_grid(n~.,
+               labeller=function(var, val) {
+                       sprintf('%s-server cluster', val)
+                     })
 ```
 
 
