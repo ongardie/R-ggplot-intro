@@ -245,8 +245,8 @@ Also, too much rainbow? Built-in [ColorBrewer](http://colorbrewer2.org/).
         geom_abline(intercept=10, slope=0))
 ```
 
-CDF
-===
+CDFs
+====
 
 Got some raw data about RAMCloud latencies from Collin.
 
@@ -261,6 +261,8 @@ head(rpcServiceTime)
 length(rpcServiceTime)
 latency = data.frame(rpcServiceTime=rpcServiceTime)
 ```
+
+Unfortunately, creating a CDF in the normal way with ggplot takes a while.
 
 ```{r}
 # slow!
@@ -289,22 +291,36 @@ system.time({
 fmt(sample.df(latencypercentiles))
 ```
 
+In practice if you have millions of data points, you might want your benchmark
+to output its data summarized like this.
+
+Now plotting is fast.
+
 ```{r}
 system.time({
     g = ggplot(latencypercentiles) +
+            # no need for stat_ecdf now
             geom_step(aes(x=time, y=percentile)) +
             scale_x_log10()
     print(g)
 })
 ```
 
-John-CDF / Ousterplot
-=====================
+If you look very closely, you can see the minor ticks are screwed up. They seem
+to be buggy with log scales. You can turn them off as follows, or see the next
+graph for a manual work-around:
+
+```{r}
+(g = g + theme(panel.grid.minor = element_blank()))
+```
+
+Let's take a closer look at that tail behavior with a John-CDF aka ousterplot.
 
 ```{r, fig.width=6, fig.height=4}
 (g = ggplot(latencypercentiles) +
         geom_step(aes(x=time, y=(1 - percentile))) +
         scale_x_log10(breaks=10**(0:6),
+                      # have to pass minor_breaks through log10()
                       minor_breaks=log10(5 * 10**(0:6))) +
         scale_y_log10(breaks=10**-(0:7),
                       minor_breaks=log10(5 * 10**-(0:7))) +
@@ -313,6 +329,8 @@ John-CDF / Ousterplot
 
 Error Bars
 ==========
+
+Here's a dataset from a LogCabin benchmark:
 
 ```{r, results='asis'}
 logcabin = read.csv('logcabin.csv')
@@ -328,6 +346,12 @@ fmt(sample.df(logcabin))
      geom_line() +
      geom_point(size=2))
 ```
+
+That's close, but there's multiple runs for each configuration.
+We really want the lines going through the mean and the error bars showing
+min/max.
+
+First option: aggressive use of stat_summary.
 
 ```{r, fig.width=7, fig.height=4}
 (g = ggplot(logcabin[logcabin$objsize == 2**10, ],
@@ -350,7 +374,7 @@ fmt(sample.df(logcabin))
 
 Alternatively, pre-summarize the data.
 
-```{r, fig.width=7, fig.height=4}
+```{r, results='asis'}
 library('plyr')
 logcabinsum = ddply(logcabin,
         ~ servers + objsize + threads,
@@ -358,7 +382,12 @@ logcabinsum = ddply(logcabin,
         mean_iops=mean(iops),
         min_iops=min(iops),
         max_iops=max(iops))
+fmt(sample.df(logcabinsum))
+```
 
+Now we can plot it more easily:
+
+```{r, fig.width=7, fig.height=4}
 (g = ggplot(logcabinsum[logcabinsum$objsize == 2**10, ],
             aes(x=servers,
                 y=mean_iops,
