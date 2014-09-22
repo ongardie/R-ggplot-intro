@@ -169,13 +169,14 @@ fmt(somecars[, c('mpg', 'hp', 'gear')]) # projection
 * Selection - vector of booleans before the comma
 
     ```{r, results='asis'}
-fmt(somecars[somecars$mpg > 21, ])
+(medianmpg = median(somecars$mpg))
+fmt(somecars[somecars$mpg > medianmpg, ])
 ```
 
 * Combined
 
     ```{r, results='asis'}
-fmt(somecars[somecars$mpg > 21, c('hp', 'gear')])
+fmt(somecars[somecars$mpg > medianmpg, c('hp', 'gear')])
 ```
 
 Our First Scatter Plot
